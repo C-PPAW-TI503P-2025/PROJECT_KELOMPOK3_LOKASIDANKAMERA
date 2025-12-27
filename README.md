@@ -13,7 +13,7 @@
 <img width="537" height="516" alt="classdiagram" src="https://github.com/user-attachments/assets/12c64279-9b82-437d-8921-60e4241920ab" />
 
 ## 4a. Activity Diagram (pelaporan kebersihan)
-![activity diagram](https://github.com/user-attachments/assets/184edc2c-e4c4-4acb-80e5-5f342dc66953)
+![WhatsApp Image 2025-12-27 at 17 52 03](https://github.com/user-attachments/assets/b4409729-17c1-4290-83fe-e90f62e36d3c)
 
 ## 4b. Activity Diagram (monitoring admin)
 ![activity diagram](https://github.com/user-attachments/assets/2e0bd0e5-1ad5-4f78-a693-c615fbf3deb3)
