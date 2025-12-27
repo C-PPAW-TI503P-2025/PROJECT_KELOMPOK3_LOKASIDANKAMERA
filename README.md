@@ -10,7 +10,8 @@
 
 ## 3. Class Diagram
 
-<img width="537" height="516" alt="classdiagram" src="https://github.com/user-attachments/assets/12c64279-9b82-437d-8921-60e4241920ab" />
+<img width="1050" height="803" alt="class2" src="https://github.com/user-attachments/assets/83e7a758-f32c-4963-9244-eb261640b66e" />
+
 
 ## 4a. Activity Diagram (pelaporan kebersihan)
 ![WhatsApp Image 2025-12-27 at 17 52 03](https://github.com/user-attachments/assets/b4409729-17c1-4290-83fe-e90f62e36d3c)
