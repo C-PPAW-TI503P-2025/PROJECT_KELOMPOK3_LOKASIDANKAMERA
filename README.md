@@ -20,5 +20,4 @@
 ![activity diagram](https://github.com/user-attachments/assets/2e0bd0e5-1ad5-4f78-a693-c615fbf3deb3)
 
 ## 5. Entity relationship diagrams (ERD)
-
-<img width="621" height="536" alt="ERD Project" src="https://github.com/user-attachments/assets/41a019f6-456e-4836-a03b-7e20d967ca79" />
+<img width="621" height="536" alt="ERD Project" src="https://github.com/user-attachments/assets/165b4a24-029a-471e-aa20-012393e3486f" />
