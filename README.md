@@ -15,7 +15,7 @@
 
 ## 4a. Activity Diagram (pelaporan kebersihan)
 
-![WhatsApp Image 2025-12-27 at 17 52 03](https://github.com/user-attachments/assets/b4409729-17c1-4290-83fe-e90f62e36d3c)
+<img width="1566" height="786" alt="activitydiagram_pelaporankebersihan" src="https://github.com/user-attachments/assets/207cb7e1-ab3c-4f2b-80ff-5223b24fd6cd" />
 
 ## 4b. Activity Diagram (monitoring admin)
 
@@ -27,7 +27,7 @@
 
 ## 6. Flowchart
 
-![Flowchart](https://github.com/user-attachments/assets/b18922ce-c0ec-4bfa-a73f-d991f8339468)
+<img width="794" height="907" alt="Flowchart" src="https://github.com/user-attachments/assets/1e11a24e-717d-4fb7-91a4-309eb805bade" />
 
 ## 7. Architecture System
 
@@ -35,4 +35,4 @@
 
 ## 8. Sequence Diagram
 
-![sequence diagram](https://github.com/user-attachments/assets/ac231fa8-0cc9-4156-98de-f75d5f0bc48b)
+<img width="591" height="725" alt="sequence diagram" src="https://github.com/user-attachments/assets/812ec9c6-308c-43ce-81d7-ed6b83035d31" />
