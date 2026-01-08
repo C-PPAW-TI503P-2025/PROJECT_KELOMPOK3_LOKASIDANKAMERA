@@ -14,10 +14,25 @@
 
 
 ## 4a. Activity Diagram (pelaporan kebersihan)
+
 ![WhatsApp Image 2025-12-27 at 17 52 03](https://github.com/user-attachments/assets/b4409729-17c1-4290-83fe-e90f62e36d3c)
 
 ## 4b. Activity Diagram (monitoring admin)
+
 ![activity diagram](https://github.com/user-attachments/assets/2e0bd0e5-1ad5-4f78-a693-c615fbf3deb3)
 
 ## 5. Entity relationship diagrams (ERD)
+
 <img width="621" height="536" alt="ERD Project" src="https://github.com/user-attachments/assets/165b4a24-029a-471e-aa20-012393e3486f" />
+
+## 6. Flowchart
+
+![Flowchart](https://github.com/user-attachments/assets/b18922ce-c0ec-4bfa-a73f-d991f8339468)
+
+## 7. Architecture System
+
+![architecture system](https://github.com/user-attachments/assets/2efde44a-9370-41d4-a561-6481ff776b4c)
+
+## 8. Sequence Diagram
+
+![sequence diagram](https://github.com/user-attachments/assets/ac231fa8-0cc9-4156-98de-f75d5f0bc48b)
