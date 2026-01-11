@@ -1,0 +1,71 @@
+@startuml Use Case Diagram - Monitoring Kebersihan
+
+title Use Case Diagram\nSistem Web Monitoring Kebersihan
+
+left to right direction
+
+' ===== ACTORS =====
+actor "Admin" as admin
+actor "Petugas" as petugas
+
+' ===== SYSTEM BOUNDARY =====
+rectangle "Sistem Web Monitoring Kebersihan" {
+    
+    ' === AUTH ===
+    usecase "Login" as UC_Login
+    usecase "Logout" as UC_Logout
+    usecase "Register" as UC_Register
+    
+    ' === PETUGAS USE CASES ===
+    usecase "Buat Laporan\nKebersihan" as UC_BuatLaporan
+    usecase "Capture Foto" as UC_CaptureFoto
+    usecase "Ambil Lokasi GPS" as UC_AmbilLokasi
+    usecase "Lihat Laporan Sendiri" as UC_LihatLaporanSendiri
+    usecase "Edit Laporan Sendiri" as UC_EditLaporan
+    usecase "Hapus Laporan Sendiri" as UC_HapusLaporan
+    
+    ' === ADMIN USE CASES ===
+    usecase "Lihat Semua Laporan" as UC_LihatSemuaLaporan
+    usecase "Verifikasi Laporan" as UC_VerifikasiLaporan
+    usecase "Lihat Detail Laporan" as UC_DetailLaporan
+    usecase "Lihat Statistik" as UC_Statistik
+}
+
+' ===== RELATIONSHIPS =====
+
+' Petugas
+petugas --> UC_Register
+petugas --> UC_Login
+petugas --> UC_Logout
+petugas --> UC_BuatLaporan
+petugas --> UC_LihatLaporanSendiri
+petugas --> UC_EditLaporan
+petugas --> UC_HapusLaporan
+
+' Admin
+admin --> UC_Login
+admin --> UC_Logout
+admin --> UC_LihatSemuaLaporan
+admin --> UC_VerifikasiLaporan
+admin --> UC_Statistik
+
+' Include relationships
+UC_BuatLaporan ..> UC_CaptureFoto : <<include>>
+UC_BuatLaporan ..> UC_AmbilLokasi : <<include>>
+UC_LihatSemuaLaporan ..> UC_DetailLaporan : <<include>>
+UC_VerifikasiLaporan ..> UC_DetailLaporan : <<include>>
+
+' Extend relationships
+UC_Login <.. UC_Logout : <<extend>>
+
+note right of UC_CaptureFoto
+  Menggunakan Camera API
+  dari Web Browser
+end note
+
+note right of UC_AmbilLokasi
+  Menggunakan Geolocation API
+  dari Web Browser
+end note
+
+@enduml
