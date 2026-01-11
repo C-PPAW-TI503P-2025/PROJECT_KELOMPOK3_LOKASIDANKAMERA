@@ -6,10 +6,12 @@ entity USER {
     email : VARCHAR
     password : VARCHAR
     role : VARCHAR
+    created_at : DATETIME
+    updated_at : DATETIME
 }
 
 entity LAPORAN_KEBERSIHAN {
-    + laporan_id : INT <<PK>>
+    + id : INT <<PK>>
     --
     user_id : INT <<FK>>
     foto : VARCHAR
