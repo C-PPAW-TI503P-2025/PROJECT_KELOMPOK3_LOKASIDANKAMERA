@@ -1,0 +1,55 @@
+@startuml
+title Sequence Diagram - Pelaporan Kebersihan (Corrected)
+
+actor Petugas
+participant "HTTP Client\n(Postman/Frontend)" as WebApp
+participant "Auth Middleware\n(JWT)" as Auth
+participant "Web Server\n(Node.js Express)" as Server
+participant "Upload Middleware\n(Multer)" as Upload
+database "PostgreSQL\n(Prisma)" as DB
+collections "File Storage\n(uploads/laporan)" as Storage
+
+== Login (Prerequisite) ==
+Petugas -> WebApp: 1. POST /api/auth/login\n{email, password}
+WebApp -> Server: 2. Forward request
+Server -> DB: 3. SELECT * FROM users\nWHERE email = ?
+DB --> Server: 4. User data
+Server -> Server: 5. bcrypt.compare(password)
+Server -> Server: 6. generateToken(payload)
+Server --> WebApp: 7. HTTP 200\n{token, user}
+WebApp --> Petugas: 8. Simpan Token
+
+== Submit Laporan ==
+Petugas -> WebApp: 9. Siapkan FormData\n(foto, latitude, longitude, keterangan)
+WebApp -> Auth: 10. POST /api/laporan\nHeader: Bearer {token}\nBody: FormData
+
+Auth -> Auth: 11. jwt.verify(token)
+alt [Token Valid]
+    Auth -> Upload: 12. Forward to upload middleware
+    Upload -> Upload: 13. Validate file type\n(jpg, jpeg, png only)
+    Upload -> Storage: 14. Save file to\nuploads/laporan/
+    Storage --> Upload: 15. filename
+
+    Upload -> Server: 16. Forward to controller\n(req.file, req.body)
+
+    Server -> Server: 17. Validate data\n(lat, long, keterangan)
+
+    alt [Data Valid]
+        Server -> DB: 18. prisma.laporanKebersihan.create()\n{user_id, foto, latitude,\nlongitude, keterangan, status:'pending'}
+        DB --> Server: 19. Created record
+
+        Server --> WebApp: 20. HTTP 201 Created\n{success: true, data: laporan}
+        WebApp --> Petugas: 21. Laporan berhasil dibuat
+
+    else [Data Tidak Valid]
+        Server -> Storage: 22. fs.unlinkSync(file) - hapus file
+        Server --> WebApp: 23. HTTP 400 Bad Request\n{success: false, message}
+        WebApp --> Petugas: 24. Tampilkan error
+    end
+
+else [Token Invalid]
+    Auth --> WebApp: 25. HTTP 401 Unauthorized\n{message: "Token tidak valid"}
+    WebApp --> Petugas: 26. Redirect ke login
+end
+
+@enduml
