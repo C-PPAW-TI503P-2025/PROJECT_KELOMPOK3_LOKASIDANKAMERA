@@ -1,0 +1,226 @@
+@startuml
+!define RECTANGLE_BORDER_COLOR #4A90E2
+!define COMPONENT_BG_COLOR #E3F2FD
+
+skinparam rectangle {
+    BackgroundColor #F5F5F5
+    BorderColor RECTANGLE_BORDER_COLOR
+}
+
+skinparam component {
+    BackgroundColor COMPONENT_BG_COLOR
+    BorderColor RECTANGLE_BORDER_COLOR
+}
+
+title Arsitektur Sistem Monitoring Kebersihan (Backend-Only)
+
+package "Client (HTTP Client)" {
+    [Postman / Thunder Client\n(API Testing)] as Browser
+    note right of Browser
+        Frontend belum diimplementasi.
+        Backend-only REST API.
+        Testing via HTTP Client.
+    end note
+}
+
+package "Server Side" {
+    component "Node.js + Express.js" as Server {
+        [Authentication\nMiddleware] as Auth
+        [Authorization\nMiddleware] as AuthZ
+        [File Upload\nMiddleware (Multer)] as Upload
+        [Validation\nMiddleware] as Valid
+        [Error Handler] as ErrorHandler
+    }
+    
+    package "API Routes" {
+        [Auth Routes] as AuthRoutes
+        [Laporan Routes\n(Petugas)] as LaporanRoutes
+        [Admin Routes] as AdminRoutes
+    }
+    
+    package "Controllers" {
+        [Auth Controller] as AuthCtrl
+        [Laporan Controller] as LaporanCtrl
+        [Admin Controller] as AdminCtrl
+    }
+    
+    package "Services" {
+        [Auth Service] as AuthSvc
+        [Laporan Service] as LaporanSvc
+        [Admin Service] as AdminSvc
+    }
+}
+
+package "ORM Layer" {
+    [Prisma Client] as Prisma
+    note right of Prisma
+        ORM untuk PostgreSQL
+        Type-safe database client
+        Migration management
+    end note
+}
+
+database "PostgreSQL Database" {
+    [Tabel users] as UserTable
+    [Tabel laporan_kebersihan] as LaporanTable
+}
+
+cloud "Storage" {
+    [Public/Uploads\n(Foto)] as FileStorage
+}
+
+' Client to Server
+Browser -down-> Server : HTTP/HTTPS Request\n(JSON + FormData)
+
+' Server Internal Flow
+Server -down-> AuthRoutes
+Server -down-> LaporanRoutes
+Server -down-> AdminRoutes
+
+AuthRoutes -down-> AuthCtrl
+LaporanRoutes -down-> LaporanCtrl
+AdminRoutes -down-> AdminCtrl
+
+AuthCtrl -down-> AuthSvc
+LaporanCtrl -down-> LaporanSvc
+AdminCtrl -down-> AdminSvc
+
+' Middleware Flow
+Auth -[hidden]right-> AuthZ
+AuthZ -[hidden]right-> Upload
+Upload -[hidden]right-> Valid
+Valid -[hidden]right-> ErrorHandler
+
+LaporanRoutes ..> Auth : << use >>
+LaporanRoutes ..> Upload : << use >>
+AdminRoutes ..> Auth : << use >>
+AdminRoutes ..> AuthZ : << use >>
+
+' Services to Prisma
+AuthSvc -down-> Prisma
+LaporanSvc -down-> Prisma
+AdminSvc -down-> Prisma
+
+' Prisma to Database
+Prisma -down-> UserTable : Query
+Prisma -down-> LaporanTable : Query
+
+' File Upload
+Upload -down-> FileStorage : Save File
+
+' Response Flow
+Server -up-> Browser : HTTP Response\n(JSON)
+
+note bottom of Server
+    RESTful API Endpoints:
+    
+    **Auth:**
+    - POST /api/auth/register
+    - POST /api/auth/login
+    - POST /api/auth/logout
+    
+    **Laporan (Petugas):**
+    - POST /api/laporan
+    - GET /api/laporan/me
+    - GET /api/laporan/:id
+    - PUT /api/laporan/:id
+    - DELETE /api/laporan/:id
+    
+    **Admin:**
+    - GET /api/admin/laporan
+    - GET /api/admin/laporan/:id
+    - PUT /api/admin/laporan/:id/verify
+    - GET /api/admin/statistics
+end note
+
+note bottom of UserTable
+    Fields:
+    - id (PK, auto increment)
+    - nama (VARCHAR)
+    - email (VARCHAR, unique)
+    - password (VARCHAR, hashed)
+    - role (ENUM: petugas, admin)
+    - created_at (TIMESTAMP)
+    - updated_at (TIMESTAMP)
+end note
+
+note bottom of LaporanTable
+    Fields:
+    - id (PK, auto increment)
+    - user_id (FK -> users.id)
+    - foto (VARCHAR, path)
+    - latitude (DOUBLE PRECISION)
+    - longitude (DOUBLE PRECISION)
+    - keterangan (TEXT)
+    - status (ENUM: pending, valid, invalid)
+    - validated_by (INT, FK -> users.id)
+    - catatan_admin (TEXT, nullable)
+    - created_at (TIMESTAMP)
+    - updated_at (TIMESTAMP)
+end note
+
+@enduml
+```
+
+## 📋 **Penjelasan Arsitektur Backend-Only:**
+
+### 🔧 **Client Layer**
+- **Postman/Thunder Client** - Untuk testing API
+- Tidak ada frontend, semua interaksi via HTTP Request
+
+### ⚙️ **Server Side (Node.js + Express.js)**
+
+#### **Middleware Layer:**
+- **Authentication Middleware** - Validasi JWT token
+- **Authorization Middleware** - Cek role user (admin/petugas)
+- **File Upload Middleware** - Handle upload foto (Multer)
+- **Validation Middleware** - Validasi request body
+- **Error Handler** - Central error handling
+
+#### **Routing Layer:**
+- **Auth Routes** - `/api/auth/*`
+- **Laporan Routes** - `/api/laporan/*` (untuk petugas)
+- **Admin Routes** - `/api/admin/*` (khusus admin)
+
+#### **Controller Layer:**
+- **Auth Controller** - Handle register, login, logout
+- **Laporan Controller** - CRUD laporan petugas
+- **Admin Controller** - Validasi laporan, statistik
+
+#### **Service Layer:**
+- **Auth Service** - Business logic autentikasi
+- **Laporan Service** - Business logic laporan
+- **Admin Service** - Business logic admin
+
+### 🗄️ **ORM Layer**
+- **Prisma Client** - Type-safe ORM untuk PostgreSQL
+- Auto-generate TypeScript types
+- Migration management
+
+### 💾 **Database Layer**
+- **PostgreSQL Database**
+  - **Tabel users** - Data user (petugas & admin)
+  - **Tabel laporan_kebersihan** - Data laporan
+
+### 📁 **Storage**
+- **File Storage** - Folder `public/uploads` untuk foto
+
+---
+
+## 🔄 **Request Flow:**
+```
+Client (Postman)
+    ↓ HTTP Request
+Server (Express)
+    ↓ Middleware (Auth, Validation, Upload)
+Routes
+    ↓
+Controller
+    ↓
+Service (Business Logic)
+    ↓
+Prisma Client
+    ↓
+PostgreSQL Database
+    ↓ Response
+Client (JSON)
