@@ -1,0 +1,52 @@
+@startuml
+title Activity Diagram - Petugas (Optimized)
+
+|#LightBlue|Petugas|
+start
+repeat
+  :Buka Website & Login;
+  :Input Email & Password;
+  :Klik "Login";
+
+  |#LightYellow|Sistem Web|
+  :Validasi Email & Password;
+  |#E6F3FF|Database|
+  :Cari Data User;
+backward:Tampilkan Error;
+repeat while (User Valid?) is (Tidak)
+
+|#LightYellow|Sistem Web|
+:Generate Token JWT & Load Dashboard;
+|#LightBlue|Petugas|
+:Masuk ke Dashboard;
+
+split
+   :Pilih "Buat Laporan Baru";
+   |#LightYellow|Sistem Web|
+   :Tampilkan Form;
+   |#LightBlue|Petugas|
+   :Isi Data & Submit;
+   |#LightYellow|Sistem Web|
+   :Validasi & Simpan;
+split again
+   :Pilih "Lihat Laporan";
+   |#E6F3FF|Database|
+   :Ambil Data Laporan;
+   |#LightYellow|Sistem Web|
+   :Tampilkan List Laporan;
+   |#LightBlue|Petugas|
+   if (Edit Laporan?) then (Ya)
+     :Update Data;
+     |#LightYellow|Sistem Web|
+     :Simpan Perubahan;
+   endif
+split again
+   :Cek Notifikasi;
+   |#LightYellow|Sistem Web|
+   :Tampilkan Notif;
+end split
+
+|#LightBlue|Petugas|
+:Klik "Logout";
+stop
+@enduml
