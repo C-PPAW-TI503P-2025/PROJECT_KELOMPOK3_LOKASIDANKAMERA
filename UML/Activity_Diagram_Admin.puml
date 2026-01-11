@@ -1,0 +1,108 @@
+@startuml
+title Activity Diagram - Petugas (Corrected - Backend Only)
+
+|#LightBlue|Petugas|
+start
+
+repeat
+  :POST /api/auth/login\n{email, password};
+
+  |#LightYellow|Sistem Web|
+  :Validasi Credentials;
+  |#E6F3FF|Database|
+  :SELECT * FROM users;
+
+  |#LightYellow|Sistem Web|
+backward:Return 401 Error;
+repeat while (Login Berhasil?) is (Tidak)
+
+:Return {token, user};
+|#LightBlue|Petugas|
+:Simpan JWT Token;
+
+split
+  :**BUAT LAPORAN**;
+  :POST /api/laporan\n(FormData: foto, lat, long, keterangan)\nHeader: Bearer token;
+
+  |#LightYellow|Sistem Web|
+  :Validate JWT;
+  :Validate & Upload Foto (Multer);
+  :Validate lat/long/keterangan;
+
+  if (Data Valid?) then (Ya)
+    |#E6F3FF|Database|
+    :INSERT INTO laporan_kebersihan;
+    |#LightYellow|Sistem Web|
+    :Return 201 Created;
+  else (Tidak)
+    :Return 400 Error;
+    :Delete uploaded file;
+  endif
+
+split again
+  :**LIHAT LAPORAN**;
+  :GET /api/laporan/me\n?status=pending&page=1;
+
+  |#E6F3FF|Database|
+  :SELECT * FROM laporan_kebersihan\nWHERE user_id = ? (my laporan);
+
+  |#LightYellow|Sistem Web|
+  :Return List + Pagination;
+
+  |#LightBlue|Petugas|
+  :GET /api/laporan/:id;
+
+  |#E6F3FF|Database|
+  :Load Detail;
+
+  |#LightYellow|Sistem Web|
+  :Return Detail Laporan;
+
+split again
+  :**EDIT LAPORAN**;
+  :PUT /api/laporan/:id\n(FormData);
+
+  |#LightYellow|Sistem Web|
+  :Check ownership;
+
+  if (user_id = my id?) then (Ya)
+    if (status = 'pending'?) then (Ya)
+      |#E6F3FF|Database|
+      :UPDATE laporan_kebersihan;
+      |#LightYellow|Sistem Web|
+      :Return 200 OK;
+    else (Sudah Diverifikasi)
+      :Return 403 Error\n"Tidak dapat mengupdate\nlaporan yang sudah diverifikasi";
+    endif
+  else (Tidak)
+    :Return 403 Forbidden;
+  endif
+
+split again
+  :**DELETE LAPORAN**;
+  :DELETE /api/laporan/:id;
+
+  |#LightYellow|Sistem Web|
+  :Check ownership;
+
+  if (user_id = my id?) then (Ya)
+    |#E6F3FF|Database|
+    :DELETE FROM laporan_kebersihan;
+    :Delete foto file;
+    |#LightYellow|Sistem Web|
+    :Return 200 OK;
+  else (Tidak)
+    :Return 403 Forbidden;
+  endif
+
+end split
+
+|#LightBlue|Petugas|
+:POST /api/auth/logout;
+|#LightYellow|Sistem Web|
+:Return 200 OK;
+
+stop
+
+
+@enduml
