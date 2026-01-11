@@ -1,0 +1,61 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  admin
+  petugas
+}
+
+// Enum untuk status laporan
+enum Status {
+  pending
+  valid
+  invalid
+}
+
+// Model User
+model User {
+  user_id   Int      @id @default(autoincrement())
+  nama      String   @db.VarChar(255)
+  email     String   @unique @db.VarChar(255)
+  password  String   @db.VarChar(255)
+  role      Role     @default(petugas)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relasi
+  laporan           LaporanKebersihan[] @relation("PetugasLaporan")
+  laporanValidated  LaporanKebersihan[] @relation("AdminValidasi")
+
+  @@map("users")
+}
+
+// Model Laporan Kebersihan
+model LaporanKebersihan {
+  id            Int       @id @default(autoincrement())
+  user_id       Int
+  foto          String    @db.VarChar(500)
+  latitude      Float     
+  longitude     Float     
+  keterangan    String    @db.Text
+  status        Status    @default(pending)
+  validated_by  Int?
+  catatan_admin String?   @db.Text
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  // Relasi
+  petugas User  @relation("PetugasLaporan", fields: [user_id], references: [user_id], onDelete: Cascade)
+  admin   User? @relation("AdminValidasi", fields: [validated_by], references: [user_id], onDelete: SetNull)
+
+  @@index([user_id])
+  @@index([validated_by])
+  @@index([status])
+  @@map("laporan_kebersihan")
+}
