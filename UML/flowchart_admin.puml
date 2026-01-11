@@ -1,0 +1,44 @@
+@startuml Flowchart Admin - Verifikasi Laporan
+
+title Flowchart Admin\nVerifikasi Laporan Kebersihan
+
+start
+
+:Admin Login;
+
+if (Login Berhasil?) then (Ya)
+    :Masuk ke Dashboard Admin;
+else (Tidak)
+    :Tampilkan Error;
+    stop
+endif
+
+:Lihat Daftar Semua Laporan;
+
+:Pilih Laporan untuk Diverifikasi;
+
+:Lihat Detail Laporan\n(Foto, Lokasi di Peta, Keterangan);
+
+if (Laporan Valid?) then (Ya)
+    :Set Status = VALID;
+    :Isi Catatan Admin\n(Optional);
+else (Tidak)
+    :Set Status = INVALID;
+    :Isi Catatan Admin\n(Alasan Invalid);
+endif
+
+:Klik Verifikasi;
+
+:Kirim ke Server\n(PUT /api/admin/laporan/:id/verify);
+
+if (Server Response OK?) then (Ya)
+    :Tampilkan\n"Laporan Berhasil Diverifikasi";
+else (Tidak)
+    :Tampilkan Error;
+endif
+
+:Kembali ke Daftar Laporan;
+
+stop
+
+@enduml
