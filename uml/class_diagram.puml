@@ -1,0 +1,101 @@
+@startuml Class Diagram - Monitoring Kebersihan (Actual)
+
+title Class Diagram - Aplikasi Web Monitoring Kebersihan
+
+' ===== ENTITY CLASSES =====
+package "Entity (Prisma Model)" {
+    class User {
+        -user_id: INT <<PK>>
+        -nama: VARCHAR
+        -email: VARCHAR
+        -password: VARCHAR
+        -role: ENUM {admin, petugas}
+        -created_at: DATETIME
+        -updated_at: DATETIME
+    }
+
+    class LaporanKebersihan {
+        -id: INT <<PK>>
+        -user_id: INT <<FK>>
+        -foto: VARCHAR
+        -latitude: FLOAT
+        -longitude: FLOAT
+        -keterangan: TEXT
+        -status: ENUM {pending, valid, invalid}
+        -validated_by: INT <<FK>>
+        -catatan_admin: TEXT
+        -created_at: DATETIME
+        -updated_at: DATETIME
+    }
+}
+
+' ===== CONTROLLER CLASSES =====
+package "Controller" {
+    class AuthController {
+        +register(req, res): Response
+        +login(req, res): Response
+        +logout(req, res): Response
+    }
+
+    class LaporanController {
+        +createLaporan(req, res): Response
+        +getMyLaporan(req, res): Response
+        +getLaporanById(req, res): Response
+        +updateLaporan(req, res): Response
+        +deleteLaporan(req, res): Response
+    }
+
+    class AdminController {
+        +getAllLaporan(req, res): Response
+        +getLaporanDetail(req, res): Response
+        +verifikasiLaporan(req, res): Response
+        +getStatistics(req, res): Response
+    }
+}
+
+' ===== MIDDLEWARE CLASSES =====
+package "Middleware" {
+    class AuthMiddleware {
+        +authenticate(req, res, next): void
+        +isAdmin(req, res, next): void
+        +isPetugas(req, res, next): void
+    }
+
+    class UploadMiddleware {
+        +storage: DiskStorage
+        +fileFilter(req, file, cb): void
+        +upload: Multer
+    }
+}
+
+' ===== UTILS CLASSES =====
+package "Utils" {
+    class JwtUtil {
+        +generateToken(payload): String
+        +verifyToken(token): Object
+    }
+
+    class ResponseUtil {
+        +successResponse(res, code, msg, data): Response
+        +errorResponse(res, code, msg): Response
+    }
+}
+
+' ===== RELATIONSHIPS =====
+User "1" -- "0..*" LaporanKebersihan : membuat >
+User "1" -- "0..*" LaporanKebersihan : memvalidasi >
+
+AuthController --> User : manages
+AuthController --> JwtUtil : uses
+AuthController --> ResponseUtil : uses
+
+LaporanController --> LaporanKebersihan : manages
+LaporanController --> UploadMiddleware : uses
+LaporanController --> ResponseUtil : uses
+
+AdminController --> LaporanKebersihan : manages
+AdminController --> ResponseUtil : uses
+
+AuthMiddleware --> JwtUtil : uses
+
+@enduml
