@@ -1,0 +1,55 @@
+@startuml Flowchart Petugas - Buat Laporan Kebersihan
+
+title Flowchart Petugas\nBuat Laporan Kebersihan (Web Application)
+
+start
+
+:Petugas Login;
+
+if (Login Berhasil?) then (Ya)
+    :Masuk ke Dashboard;
+else (Tidak)
+    :Tampilkan Error;
+    stop
+endif
+
+:Klik "Buat Laporan Baru";
+
+:Buka Camera\n(Browser Camera API);
+
+:Capture Foto;
+
+if (Foto Berhasil?) then (Ya)
+    :Simpan Foto;
+else (Tidak)
+    :Tampilkan Error\n"Gagal mengambil foto";
+    stop
+endif
+
+:Ambil Koordinat GPS\n(Browser Geolocation API);
+
+if (Lokasi Ditemukan?) then (Ya)
+    :Simpan Latitude & Longitude;
+else (Tidak)
+    :Tampilkan Error\n"Lokasi tidak ditemukan";
+    stop
+endif
+
+:Isi Keterangan Laporan;
+
+:Klik Submit;
+
+:Kirim Data ke Server\n(POST /api/laporan);
+
+if (Server Response OK?) then (Ya)
+    :Tampilkan\n"Laporan Berhasil Dibuat";
+    :Status: PENDING;
+else (Tidak)
+    :Tampilkan Error\n"Gagal membuat laporan";
+endif
+
+:Kembali ke Dashboard;
+
+stop
+
+@enduml
