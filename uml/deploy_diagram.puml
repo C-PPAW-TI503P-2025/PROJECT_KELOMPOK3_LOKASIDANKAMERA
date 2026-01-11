@@ -1,0 +1,80 @@
+@startuml Deployment Diagram - Monitoring Kebersihan (Actual)
+
+title Deployment Diagram - Aplikasi Web Monitoring Kebersihan
+
+skinparam node {
+    BackgroundColor LightBlue
+    BorderColor DarkBlue
+}
+
+skinparam component {
+    BackgroundColor LightYellow
+    BorderColor Orange
+}
+
+' ===== CLIENT SIDE =====
+node "Client Device" as client {
+    node "HTTP Client (Postman/Browser)" as browser {
+        component [REST API Requests] as requests
+    }
+}
+
+' ===== WEB SERVER =====
+node "Web Server" as webserver {
+    node "Node.js / Express" as nodejs {
+        component [REST API\n/api/auth/*\n/api/laporan/*\n/api/admin/*] as api
+        component [Authentication\nMiddleware (JWT)] as auth
+        component [File Upload\nMiddleware (Multer)] as upload
+    }
+}
+
+' ===== DATABASE SERVER =====
+node "Database Server" as dbserver {
+    database "PostgreSQL" as db {
+        component [users] as tbl_users
+        component [laporan_kebersihan] as tbl_laporan
+    }
+}
+
+' ===== FILE STORAGE =====
+node "File Storage" as storage {
+    folder "uploads/laporan" as uploads {
+        component [foto_laporan.jpg/png] as photos
+    }
+}
+
+' ===== ORM =====
+node "ORM Layer" as orm {
+    component [Prisma Client] as prisma
+}
+
+' ===== CONNECTIONS =====
+requests --> api : HTTP/HTTPS\n(REST API)
+api --> auth : validate JWT token
+api --> upload : handle multipart/form-data
+api --> prisma : database queries
+prisma --> db : PostgreSQL connection
+upload --> photos : save foto
+
+tbl_users <--> tbl_laporan : FK relationship
+
+' ===== ACTORS =====
+actor "Petugas" as petugas
+actor "Admin" as admin
+
+petugas --> browser : POST /api/laporan\nGET /api/laporan/me
+admin --> browser : GET /api/admin/laporan\nPUT /api/admin/laporan/:id/verify
+
+note right of webserver
+  Backend menangani:
+  - Authentication (JWT)
+  - CRUD Laporan (Prisma)
+  - File Upload (Multer)
+end note
+
+note right of db
+  Database: PostgreSQL
+  ORM: Prisma
+end note
+
+@enduml
