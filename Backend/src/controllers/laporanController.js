@@ -1,5 +1,5 @@
 const { PrismaClient } = require('@prisma/client');
-const { successResponse, errorResponse } = require('../utils/response');
+const { successResponse, errorResponse } = require('../utils/reponse');
 const fs = require('fs');
 const path = require('path');
 
