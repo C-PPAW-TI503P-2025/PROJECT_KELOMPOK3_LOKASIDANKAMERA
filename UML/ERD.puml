@@ -1,0 +1,27 @@
+@startuml ERD
+entity USER {
+    + user_id : INT <<PK>>
+    --
+    nama : VARCHAR
+    email : VARCHAR
+    password : VARCHAR
+    role : VARCHAR
+}
+
+entity LAPORAN_KEBERSIHAN {
+    + laporan_id : INT <<PK>>
+    --
+    user_id : INT <<FK>>
+    foto : VARCHAR
+    latitude : DOUBLE
+    longitude : DOUBLE
+    keterangan : TEXT
+    status : VARCHAR
+    validated_by : INT <<FK>>
+    catatan_admin : TEXT
+    created_at : DATETIME
+    updated_at : DATETIME
+}
+
+USER ||--o{ LAPORAN_KEBERSIHAN : membuat
+@enduml
