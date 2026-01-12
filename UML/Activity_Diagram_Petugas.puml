@@ -40,10 +40,6 @@ split again
      |#LightYellow|Sistem Web|
      :Simpan Perubahan;
    endif
-split again
-   :Cek Notifikasi;
-   |#LightYellow|Sistem Web|
-   :Tampilkan Notif;
 end split
 
 |#LightBlue|Petugas|
