@@ -1,48 +1,107 @@
 @startuml
-title Activity Diagram - Petugas (Optimized)
+title Activity Diagram - Petugas (Corrected - Backend Only)
 
 |#LightBlue|Petugas|
 start
+
 repeat
-  :Buka Website & Login;
-  :Input Email & Password;
-  :Klik "Login";
+  :POST /api/auth/login\n{email, password};
 
   |#LightYellow|Sistem Web|
-  :Validasi Email & Password;
+  :Validasi Credentials;
   |#E6F3FF|Database|
-  :Cari Data User;
-backward:Tampilkan Error;
-repeat while (User Valid?) is (Tidak)
+  :SELECT * FROM users;
 
-|#LightYellow|Sistem Web|
-:Generate Token JWT & Load Dashboard;
+  |#LightYellow|Sistem Web|
+backward:Return 401 Error;
+repeat while (Login Berhasil?) is (Tidak)
+
+:Return {token, user};
 |#LightBlue|Petugas|
-:Masuk ke Dashboard;
+:Simpan JWT Token;
 
 split
-   :Pilih "Buat Laporan Baru";
-   |#LightYellow|Sistem Web|
-   :Tampilkan Form;
-   |#LightBlue|Petugas|
-   :Isi Data & Submit;
-   |#LightYellow|Sistem Web|
-   :Validasi & Simpan;
+  :**BUAT LAPORAN**;
+  :POST /api/laporan\n(FormData: foto, lat, long, keterangan)\nHeader: Bearer token;
+
+  |#LightYellow|Sistem Web|
+  :Validate JWT;
+  :Validate & Upload Foto (Multer);
+  :Validate lat/long/keterangan;
+
+  if (Data Valid?) then (Ya)
+    |#E6F3FF|Database|
+    :INSERT INTO laporan_kebersihan;
+    |#LightYellow|Sistem Web|
+    :Return 201 Created;
+  else (Tidak)
+    :Return 400 Error;
+    :Delete uploaded file;
+  endif
+
 split again
-   :Pilih "Lihat Laporan";
-   |#E6F3FF|Database|
-   :Ambil Data Laporan;
-   |#LightYellow|Sistem Web|
-   :Tampilkan List Laporan;
-   |#LightBlue|Petugas|
-   if (Edit Laporan?) then (Ya)
-     :Update Data;
-     |#LightYellow|Sistem Web|
-     :Simpan Perubahan;
-   endif
+  :**LIHAT LAPORAN**;
+  :GET /api/laporan/me\n?status=pending&page=1;
+
+  |#E6F3FF|Database|
+  :SELECT * FROM laporan_kebersihan\nWHERE user_id = ? (my laporan);
+
+  |#LightYellow|Sistem Web|
+  :Return List + Pagination;
+
+  |#LightBlue|Petugas|
+  :GET /api/laporan/:id;
+
+  |#E6F3FF|Database|
+  :Load Detail;
+
+  |#LightYellow|Sistem Web|
+  :Return Detail Laporan;
+
+split again
+  :**EDIT LAPORAN**;
+  :PUT /api/laporan/:id\n(FormData);
+
+  |#LightYellow|Sistem Web|
+  :Check ownership;
+
+  if (user_id = my id?) then (Ya)
+    if (status = 'pending'?) then (Ya)
+      |#E6F3FF|Database|
+      :UPDATE laporan_kebersihan;
+      |#LightYellow|Sistem Web|
+      :Return 200 OK;
+    else (Sudah Diverifikasi)
+      :Return 403 Error\n"Tidak dapat mengupdate\nlaporan yang sudah diverifikasi";
+    endif
+  else (Tidak)
+    :Return 403 Forbidden;
+  endif
+
+split again
+  :**DELETE LAPORAN**;
+  :DELETE /api/laporan/:id;
+
+  |#LightYellow|Sistem Web|
+  :Check ownership;
+
+  if (user_id = my id?) then (Ya)
+    |#E6F3FF|Database|
+    :DELETE FROM laporan_kebersihan;
+    :Delete foto file;
+    |#LightYellow|Sistem Web|
+    :Return 200 OK;
+  else (Tidak)
+    :Return 403 Forbidden;
+  endif
+
 end split
 
 |#LightBlue|Petugas|
-:Klik "Logout";
+:POST /api/auth/logout;
+|#LightYellow|Sistem Web|
+:Return 200 OK;
+
 stop
+
 @enduml
