@@ -43,12 +43,6 @@ package "Server Side" {
         [Laporan Controller] as LaporanCtrl
         [Admin Controller] as AdminCtrl
     }
-    
-    package "Services" {
-        [Auth Service] as AuthSvc
-        [Laporan Service] as LaporanSvc
-        [Admin Service] as AdminSvc
-    }
 }
 
 package "ORM Layer" {
@@ -81,9 +75,10 @@ AuthRoutes -down-> AuthCtrl
 LaporanRoutes -down-> LaporanCtrl
 AdminRoutes -down-> AdminCtrl
 
-AuthCtrl -down-> AuthSvc
-LaporanCtrl -down-> LaporanSvc
-AdminCtrl -down-> AdminSvc
+' Controller to Prisma (No Service Layer)
+AuthCtrl -down-> Prisma
+LaporanCtrl -down-> Prisma
+AdminCtrl -down-> Prisma
 
 ' Middleware Flow
 Auth -[hidden]right-> AuthZ
@@ -96,10 +91,7 @@ LaporanRoutes ..> Upload : << use >>
 AdminRoutes ..> Auth : << use >>
 AdminRoutes ..> AuthZ : << use >>
 
-' Services to Prisma
-AuthSvc -down-> Prisma
-LaporanSvc -down-> Prisma
-AdminSvc -down-> Prisma
+' Prisma to Database
 
 ' Prisma to Database
 Prisma -down-> UserTable : Query
@@ -160,67 +152,3 @@ note bottom of LaporanTable
 end note
 
 @enduml
-```
-
-## 📋 **Penjelasan Arsitektur Backend-Only:**
-
-### 🔧 **Client Layer**
-- **Postman/Thunder Client** - Untuk testing API
-- Tidak ada frontend, semua interaksi via HTTP Request
-
-### ⚙️ **Server Side (Node.js + Express.js)**
-
-#### **Middleware Layer:**
-- **Authentication Middleware** - Validasi JWT token
-- **Authorization Middleware** - Cek role user (admin/petugas)
-- **File Upload Middleware** - Handle upload foto (Multer)
-- **Validation Middleware** - Validasi request body
-- **Error Handler** - Central error handling
-
-#### **Routing Layer:**
-- **Auth Routes** - `/api/auth/*`
-- **Laporan Routes** - `/api/laporan/*` (untuk petugas)
-- **Admin Routes** - `/api/admin/*` (khusus admin)
-
-#### **Controller Layer:**
-- **Auth Controller** - Handle register, login, logout
-- **Laporan Controller** - CRUD laporan petugas
-- **Admin Controller** - Validasi laporan, statistik
-
-#### **Service Layer:**
-- **Auth Service** - Business logic autentikasi
-- **Laporan Service** - Business logic laporan
-- **Admin Service** - Business logic admin
-
-### 🗄️ **ORM Layer**
-- **Prisma Client** - Type-safe ORM untuk PostgreSQL
-- Auto-generate TypeScript types
-- Migration management
-
-### 💾 **Database Layer**
-- **PostgreSQL Database**
-  - **Tabel users** - Data user (petugas & admin)
-  - **Tabel laporan_kebersihan** - Data laporan
-
-### 📁 **Storage**
-- **File Storage** - Folder `public/uploads` untuk foto
-
----
-
-## 🔄 **Request Flow:**
-```
-Client (Postman)
-    ↓ HTTP Request
-Server (Express)
-    ↓ Middleware (Auth, Validation, Upload)
-Routes
-    ↓
-Controller
-    ↓
-Service (Business Logic)
-    ↓
-Prisma Client
-    ↓
-PostgreSQL Database
-    ↓ Response
-Client (JSON)
