@@ -1,108 +1,94 @@
 @startuml
-title Activity Diagram - Petugas (Corrected - Backend Only)
+title Activity Diagram - Admin (Corrected - Backend Only)
 
-|#LightBlue|Petugas|
+|#LightPink|Admin|
 start
+:POST /api/auth/login\n{email, password};
 
-repeat
-  :POST /api/auth/login\n{email, password};
+|#LightYellow|Sistem Web|
+:Validasi Email & Password\n(bcrypt.compare);
 
-  |#LightYellow|Sistem Web|
-  :Validasi Credentials;
-  |#E6F3FF|Database|
-  :SELECT * FROM users;
+|#E6F3FF|Database|
+:SELECT * FROM users\nWHERE email = ?;
 
-  |#LightYellow|Sistem Web|
-backward:Return 401 Error;
-repeat while (Login Berhasil?) is (Tidak)
+|#LightYellow|Sistem Web|
+if (User Ditemukan &\nPassword Cocok?) then (Ya)
+  :Generate Token JWT\n(user_id, email, role);
+  :Return {token, user};
 
-:Return {token, user};
-|#LightBlue|Petugas|
-:Simpan JWT Token;
-
-split
-  :**BUAT LAPORAN**;
-  :POST /api/laporan\n(FormData: foto, lat, long, keterangan)\nHeader: Bearer token;
+  |#LightPink|Admin|
+  :GET /api/admin/statistics\n(Header: Bearer token);
 
   |#LightYellow|Sistem Web|
-  :Validate JWT;
-  :Validate & Upload Foto (Multer);
-  :Validate lat/long/keterangan;
+  :Validate JWT Token;
+  :Check role (middleware);
 
-  if (Data Valid?) then (Ya)
+  if (Role = Admin?) then (Ya)
     |#E6F3FF|Database|
-    :INSERT INTO laporan_kebersihan;
+    :COUNT laporan by status\nCOUNT petugas;
+
     |#LightYellow|Sistem Web|
-    :Return 201 Created;
-  else (Tidak)
-    :Return 400 Error;
-    :Delete uploaded file;
-  endif
+    :Return Statistics JSON;
 
-split again
-  :**LIHAT LAPORAN**;
-  :GET /api/laporan/me\n?status=pending&page=1;
+    |#LightPink|Admin|
+    :GET /api/admin/laporan\n?status=pending;
 
-  |#E6F3FF|Database|
-  :SELECT * FROM laporan_kebersihan\nWHERE user_id = ? (my laporan);
-
-  |#LightYellow|Sistem Web|
-  :Return List + Pagination;
-
-  |#LightBlue|Petugas|
-  :GET /api/laporan/:id;
-
-  |#E6F3FF|Database|
-  :Load Detail;
-
-  |#LightYellow|Sistem Web|
-  :Return Detail Laporan;
-
-split again
-  :**EDIT LAPORAN**;
-  :PUT /api/laporan/:id\n(FormData);
-
-  |#LightYellow|Sistem Web|
-  :Check ownership;
-
-  if (user_id = my id?) then (Ya)
-    if (status = 'pending'?) then (Ya)
-      |#E6F3FF|Database|
-      :UPDATE laporan_kebersihan;
-      |#LightYellow|Sistem Web|
-      :Return 200 OK;
-    else (Sudah Diverifikasi)
-      :Return 403 Error\n"Tidak dapat mengupdate\nlaporan yang sudah diverifikasi";
-    endif
-  else (Tidak)
-    :Return 403 Forbidden;
-  endif
-
-split again
-  :**DELETE LAPORAN**;
-  :DELETE /api/laporan/:id;
-
-  |#LightYellow|Sistem Web|
-  :Check ownership;
-
-  if (user_id = my id?) then (Ya)
     |#E6F3FF|Database|
-    :DELETE FROM laporan_kebersihan;
-    :Delete foto file;
+    :SELECT * FROM laporan_kebersihan\nWHERE status = 'pending'\nORDER BY created_at DESC;
+
+    |#LightYellow|Sistem Web|
+    :Return List Laporan + Pagination;
+
+    |#LightPink|Admin|
+    :GET /api/admin/laporan/:id;
+
+    |#E6F3FF|Database|
+    :Load Detail Laporan\n+ JOIN users (petugas & admin);
+
+    |#LightYellow|Sistem Web|
+    :Return Detail Laporan;
+
+    |#LightPink|Admin|
+    :PUT /api/admin/laporan/:id/verify\n{status: "valid"|"invalid",\ncatatan_admin: "..."};
+
+    |#E6F3FF|Database|
+    if (status = 'pending'?) then (Ya)
+      :UPDATE laporan_kebersihan\nSET status, validated_by,\ncatatan_admin;
+
+      |#LightYellow|Sistem Web|
+      :Return 200 OK\n{laporan updated};
+
+      |#LightPink|Admin|
+      :Verifikasi Berhasil;
+    else (Sudah Diverifikasi)
+      |#LightYellow|Sistem Web|
+      :Return 400 Error\n"Laporan sudah diverifikasi";
+      |#LightPink|Admin|
+      :Tampilkan Error;
+    endif
+
+    :POST /api/auth/logout;
     |#LightYellow|Sistem Web|
     :Return 200 OK;
-  else (Tidak)
+
+  else (Bukan Admin)
+    |#LightYellow|Sistem Web|
     :Return 403 Forbidden;
   endif
 
-end split
-
-|#LightBlue|Petugas|
-:POST /api/auth/logout;
-|#LightYellow|Sistem Web|
-:Return 200 OK;
+else (Tidak)
+  :Return 401 Unauthorized\n"Email atau password salah";
+  |#LightPink|Admin|
+  :Tampilkan Error Login;
+endif
 
 stop
 
+note right
+  ❌ REMOVED:
+  - Dashboard UI (tidak ada frontend)
+  - Peta & Grafik (tidak ada frontend)
+  - Notifikasi ke Petugas (tidak diimplementasi)
+end note
 
 @enduml
